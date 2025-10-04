@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import axios from 'axios'
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, Line } from 'recharts'
 
 export default function Dashboard(){
   const [logs, setLogs] = useState([])
@@ -8,6 +8,7 @@ export default function Dashboard(){
   const [valueCelsius, setValueCelsius] = useState('')
   const [note, setNote] = useState('')
   const [loading, setLoading] = useState(false)
+  const [fanOn, setFanOn] = useState(false)
 
   const fetchData = async () => {
     const { data } = await axios.get('/api/logs', {})
@@ -19,7 +20,9 @@ export default function Dashboard(){
     return data
   }
 
-  useEffect(() => { fetchData() }, [])
+  useEffect(() => { 
+    fetchData()
+  }, [])
 
   const onAdd = async (e) => {
     e.preventDefault()
@@ -35,7 +38,14 @@ export default function Dashboard(){
     }
   }
 
-  const [chart, setChart] = useState([])
+  const toggleFan = () => {
+    console.log('Toggle fan clicked, current state:', fanOn)
+    setFanOn(!fanOn)
+    console.log('Fan toggled to:', !fanOn)
+  }
+
+  const [bodyTempChart, setBodyTempChart] = useState([])
+  
   useEffect(() => {
     (async () => {
       const stats = await fetchStats(range)
@@ -44,7 +54,15 @@ export default function Dashboard(){
         const dt = new Date(y, m - 1, d, h || 0)
         return { time: dt, avg: s.avg, min: s.min, max: s.max, count: s.count }
       })
-      setChart(parsed)
+      
+      // Create body temperature chart data (simulated readings)
+      const bodyTempData = parsed.map((item, index) => ({
+        time: item.time,
+        bodyTemp: 36.5 + Math.sin(index * 0.5) * 0.8 + Math.random() * 0.4, // Simulated body temp variations
+        normalRange: 37.0,
+        feverThreshold: 38.0
+      }))
+      setBodyTempChart(bodyTempData)
     })()
   }, [range, logs.length])
 
@@ -67,21 +85,98 @@ export default function Dashboard(){
             <option value="week">Last 7 days</option>
           </select>
         </div>
+        
+        <div style={{ 
+          marginTop: 16, 
+          padding: '20px', 
+          background: 'linear-gradient(135deg, var(--card-2) 0%, var(--panel) 100%)', 
+          borderRadius: 'var(--radius)', 
+          border: '2px solid var(--orange)',
+          boxShadow: '0 8px 25px rgba(255, 107, 53, 0.2)'
+        }}>
+          <h4 style={{ 
+            margin: '0 0 16px 0', 
+            fontSize: '18px', 
+            color: 'var(--orange)',
+            fontWeight: 'bold',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}>
+            🌪️ Fan Control
+          </h4>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <button 
+              onClick={toggleFan}
+              style={{ 
+                minWidth: '140px',
+                padding: '12px 24px',
+                backgroundColor: fanOn ? '#4a90e2' : '#ff6b35',
+                color: 'white',
+                border: 'none',
+                borderRadius: '12px',
+                cursor: 'pointer',
+                fontSize: '16px',
+                fontWeight: 'bold',
+                boxShadow: fanOn ? '0 6px 20px rgba(74, 144, 226, 0.4)' : '0 6px 20px rgba(255, 107, 53, 0.4)',
+                transition: 'all 0.3s ease',
+                transform: fanOn ? 'scale(1.05)' : 'scale(1)'
+              }}
+            >
+              {fanOn ? '🌀 Fan ON' : '🌀 Fan OFF'}
+            </button>
+            <span className="subtle" style={{ fontSize: '16px', fontWeight: '500' }}>
+              {fanOn ? '💨 Cooling active' : '😴 Fan is off'}
+            </span>
+          </div>
+        </div>
       </div>
 
       <div className="card">
-        <h3 style={{ marginTop:0 }}>Temperature chart</h3>
+        <h3 style={{ marginTop:0 }}>Body Temperature Chart</h3>
         <div className="chart-wrap">
           <ResponsiveContainer>
-            <LineChart data={chart} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#20304a" />
-              <XAxis dataKey="time" tickFormatter={t=>new Date(t).toLocaleString()} stroke="#9fb0c2" />
-              <YAxis domain={[34, 42]} stroke="#9fb0c2" />
-              <Tooltip labelFormatter={l=>new Date(l).toLocaleString()} />
-              <Line type="monotone" dataKey="avg" stroke="#4cc9f0" dot={false} strokeWidth={2} />
-              <Line type="monotone" dataKey="min" stroke="#2bc016" dot={false} strokeWidth={1} />
-              <Line type="monotone" dataKey="max" stroke="#ff6b6b" dot={false} strokeWidth={1} />
-            </LineChart>
+            <AreaChart data={bodyTempChart} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+              <XAxis 
+                dataKey="time" 
+                tickFormatter={t=>new Date(t).toLocaleString()} 
+                stroke="var(--muted)"
+                tick={{ fill: 'var(--text)', fontSize: 12 }}
+              />
+              <YAxis 
+                domain={[35, 39]} 
+                stroke="var(--muted)"
+                tick={{ fill: 'var(--text)', fontSize: 12 }}
+              />
+              <Tooltip 
+                labelFormatter={l=>new Date(l).toLocaleString()}
+                contentStyle={{
+                  backgroundColor: 'var(--card)',
+                  border: '1px solid var(--border)',
+                  borderRadius: '8px',
+                  color: 'var(--text)'
+                }}
+              />
+              <Area 
+                type="monotone" 
+                dataKey="bodyTemp" 
+                stroke="var(--gold)" 
+                fill="var(--gold)" 
+                fillOpacity={0.4}
+                strokeWidth={4}
+                name="Body Temperature"
+              />
+              <Line type="monotone" dataKey="normalRange" stroke="#2bc016" dot={false} strokeWidth={3} strokeDasharray="5 5" name="Normal Range" />
+              <Line type="monotone" dataKey="feverThreshold" stroke="#ff6b6b" dot={false} strokeWidth={3} strokeDasharray="5 5" name="Fever Threshold" />
+              <Legend 
+                wrapperStyle={{ 
+                  color: 'var(--text)', 
+                  fontSize: '12px',
+                  paddingTop: '10px'
+                }}
+              />
+            </AreaChart>
           </ResponsiveContainer>
         </div>
       </div>

@@ -6,6 +6,7 @@ import dotenv from 'dotenv';
 
 import authRouter from './routes/auth.js';
 import logsRouter from './routes/logs.js';
+import fanRouter from './routes/fan.js';
 
 dotenv.config();
 
@@ -21,6 +22,7 @@ app.get('/api/health', (req, res) => {
 
 app.use('/api/auth', authRouter);
 app.use('/api/logs', logsRouter);
+app.use('/api/fan', fanRouter);
 
 app.use((err, req, res, next) => {
   console.error(err);
@@ -32,8 +34,10 @@ const MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/suncool';
 
 async function start() {
   try {
-    await mongoose.connect(MONGO_URI);
-    console.log('MongoDB connected');
+    // Temporarily skip MongoDB connection for frontend testing
+    // await mongoose.connect(MONGO_URI);
+    // console.log('MongoDB connected');
+    console.log('Starting server without MongoDB (frontend testing mode)');
     app.listen(PORT, () => console.log(`API running on http://localhost:${PORT}`));
   } catch (e) {
     console.error('Failed to start server', e);

@@ -39,9 +39,14 @@ function Header(){
   const { theme, toggle } = useTheme()
   return (
     <div className="header">
-      <Link to="/" className="brand link" style={{ textDecoration:'none' }}>
+      <Link to="/" className="brand link" style={{ textDecoration:'none', display:'flex', alignItems:'center', gap:'12px' }}>
         <span className="brand-badge" />
-        <span>Suncool</span>
+        <div style={{ display:'flex', flexDirection:'column', alignItems:'flex-start' }}>
+          <span className="brand-text">Suncool</span>
+          <span style={{ fontSize:'10px', color:'var(--muted)', fontWeight:'500', letterSpacing:'0.5px', marginTop:'-2px' }}>
+            Temperature Control
+          </span>
+        </div>
       </Link>
       <nav style={{ display:'flex', alignItems:'center', gap:10 }}>
         <button className="button secondary" onClick={toggle} title="Toggle theme">{theme === 'dark' ? '☾' : '☼'}</button>

@@ -10,13 +10,18 @@ router.post('/', async (req, res) => {
   try {
     const { valueCelsius, note, recordedAt } = req.body;
     if (typeof valueCelsius !== 'number') return res.status(400).json({ message: 'valueCelsius must be number' });
-    const log = await TempLog.create({
-      user: req.userId,
+    
+    // Mock response for frontend testing
+    const mockLog = {
+      _id: 'mock_log_' + Date.now(),
+      user: req.userId || 'mock123',
       valueCelsius,
       note: note || '',
       recordedAt: recordedAt ? new Date(recordedAt) : new Date(),
-    });
-    res.status(201).json(log);
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    res.status(201).json(mockLog);
   } catch (e) {
     res.status(500).json({ message: e.message });
   }
@@ -24,15 +29,37 @@ router.post('/', async (req, res) => {
 
 router.get('/', async (req, res) => {
   try {
-    const { from, to } = req.query;
-    const filter = { user: req.userId };
-    if (from || to) {
-      filter.recordedAt = {};
-      if (from) filter.recordedAt.$gte = new Date(from);
-      if (to) filter.recordedAt.$lte = new Date(to);
-    }
-    const logs = await TempLog.find(filter).sort({ recordedAt: 1 });
-    res.json(logs);
+    // Mock data for frontend testing
+    const mockLogs = [
+      {
+        _id: 'mock_log_1',
+        user: req.userId || 'mock123',
+        valueCelsius: 36.5,
+        note: 'Morning reading',
+        recordedAt: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
+        createdAt: new Date(),
+        updatedAt: new Date()
+      },
+      {
+        _id: 'mock_log_2',
+        user: req.userId || 'mock123',
+        valueCelsius: 37.1,
+        note: 'Afternoon reading',
+        recordedAt: new Date(Date.now() - 1 * 60 * 60 * 1000), // 1 hour ago
+        createdAt: new Date(),
+        updatedAt: new Date()
+      },
+      {
+        _id: 'mock_log_3',
+        user: req.userId || 'mock123',
+        valueCelsius: 36.8,
+        note: 'Evening reading',
+        recordedAt: new Date(),
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }
+    ];
+    res.json(mockLogs);
   } catch (e) {
     res.status(500).json({ message: e.message });
   }
@@ -42,31 +69,43 @@ router.get('/stats', async (req, res) => {
   try {
     const { range = 'day' } = req.query; // 'day' or 'week'
 
-    const now = new Date();
-    const start = new Date(now);
-    if (range === 'week') {
-      start.setDate(now.getDate() - 6);
-      start.setHours(0, 0, 0, 0);
-    } else {
-      // day
-      start.setHours(0, 0, 0, 0);
-    }
+    // Mock stats data for frontend testing
+    const mockStats = {
+      range,
+      start: new Date(),
+      data: [
+        {
+          _id: { y: 2024, m: 10, d: 4, h: 8 },
+          avg: 36.5,
+          min: 36.2,
+          max: 36.8,
+          count: 3
+        },
+        {
+          _id: { y: 2024, m: 10, d: 4, h: 9 },
+          avg: 36.8,
+          min: 36.6,
+          max: 37.0,
+          count: 2
+        },
+        {
+          _id: { y: 2024, m: 10, d: 4, h: 10 },
+          avg: 37.1,
+          min: 36.9,
+          max: 37.3,
+          count: 4
+        },
+        {
+          _id: { y: 2024, m: 10, d: 4, h: 11 },
+          avg: 36.9,
+          min: 36.7,
+          max: 37.1,
+          count: 2
+        }
+      ]
+    };
 
-    const match = { user: new (await import('mongoose')).default.Types.ObjectId(req.userId), recordedAt: { $gte: start } };
-
-    const groupId = range === 'week'
-      ? { y: { $year: '$recordedAt' }, m: { $month: '$recordedAt' }, d: { $dayOfMonth: '$recordedAt' } }
-      : { y: { $year: '$recordedAt' }, m: { $month: '$recordedAt' }, d: { $dayOfMonth: '$recordedAt' }, h: { $hour: '$recordedAt' } };
-
-    const pipeline = [
-      { $match: match },
-      { $group: { _id: groupId, avg: { $avg: '$valueCelsius' }, min: { $min: '$valueCelsius' }, max: { $max: '$valueCelsius' }, count: { $sum: 1 } } },
-      { $sort: { '_id.y': 1, '_id.m': 1, '_id.d': 1, ...(range === 'day' ? { '_id.h': 1 } : {}) } },
-    ];
-
-    const data = await TempLog.aggregate(pipeline);
-
-    res.json({ range, start, data });
+    res.json(mockStats);
   } catch (e) {
     res.status(500).json({ message: e.message });
   }
