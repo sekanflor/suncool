@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../lib/auth'
 
-export default function Login(){
+export default function Login() {
   const { login } = useAuth()
   const nav = useNavigate()
   const [email, setEmail] = useState('')
@@ -25,34 +25,60 @@ export default function Login(){
   }
 
   return (
-    <div className="hero">
-      <div className="panel">
-        <h2 style={{ marginTop:0 }}>Welcome back</h2>
-        <p className="subtle">Log in to track and visualize your temperature trends.</p>
-        <form onSubmit={onSubmit} style={{ marginTop: 16 }}>
-          <div style={{ marginBottom: 12 }}>
+    <div className="auth-container">
+      <div className="glass-card animate-enter" style={{ maxWidth: '400px', width: '100%', padding: '32px' }}>
+        <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+          <h1 className="brand" style={{ justifyContent: 'center', marginBottom: '8px' }}>Suncool</h1>
+          <p className="subtle">Welcome back</p>
+        </div>
+
+        <form onSubmit={onSubmit}>
+          <div className="form-group">
             <label className="label">Email</label>
-            <input className="input" type="email" value={email} onChange={e=>setEmail(e.target.value)} required />
+            <input
+              className="input"
+              type="email"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              placeholder="Enter your email"
+              required
+            />
           </div>
-          <div style={{ marginBottom: 12 }}>
+
+          <div className="form-group">
             <label className="label">Password</label>
-            <input className="input" type="password" value={password} onChange={e=>setPassword(e.target.value)} required />
+            <input
+              className="input"
+              type="password"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              placeholder="Enter your password"
+              required
+            />
           </div>
-          {error && <div style={{ color: '#ff6b6b', marginBottom: 12 }}>{error}</div>}
-          <div style={{ display:'flex', gap:12, alignItems:'center' }}>
-            <button className="button" disabled={loading}>{loading ? 'Signing in...' : 'Login'}</button>
-            <span className="subtle">No account? <Link className="link" to="/signup">Sign up</Link></span>
+
+          {error && (
+            <div style={{
+              background: 'rgba(244, 63, 94, 0.1)',
+              color: 'var(--accent)',
+              padding: '12px',
+              borderRadius: '8px',
+              fontSize: '14px',
+              marginBottom: '20px',
+              border: '1px solid rgba(244, 63, 94, 0.2)'
+            }}>
+              {error}
+            </div>
+          )}
+
+          <button className="btn btn-primary" style={{ width: '100%', marginBottom: '16px' }} disabled={loading}>
+            {loading ? 'Signing in...' : 'Sign in'}
+          </button>
+
+          <div style={{ textAlign: 'center', fontSize: '14px', color: 'var(--text-muted)' }}>
+            Don't have an account? <Link to="/signup" className="link" style={{ fontWeight: 600 }}>Create one</Link>
           </div>
         </form>
-      </div>
-      <div className="card">
-        <h3 style={{ marginTop:0 }}>Why Suncool?</h3>
-        <ul>
-          <li>Fast logging with notes</li>
-          <li>Beautiful charts for daily and weekly trends</li>
-          <li>Secure account with JWT authentication</li>
-        </ul>
-        <p className="footer-note">Tip: switch theme using the ☾/☼ button in the header.</p>
       </div>
     </div>
   )

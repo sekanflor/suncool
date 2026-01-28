@@ -5,13 +5,13 @@ import Dashboard from './pages/Dashboard'
 import { useAuth, AuthProvider } from './lib/auth'
 import { ThemeProvider, useTheme } from './lib/theme'
 
-function Protected({ children }){
+function Protected({ children }) {
   const { token } = useAuth()
   if (!token) return <Navigate to="/login" replace />
   return children
 }
 
-function Shell(){
+function Shell() {
   return (
     <div className="container">
       <Header />
@@ -24,7 +24,7 @@ function Shell(){
   )
 }
 
-export default function App(){
+export default function App() {
   return (
     <ThemeProvider>
       <AuthProvider>
@@ -34,29 +34,37 @@ export default function App(){
   )
 }
 
-function Header(){
+function Header() {
   const { token, user, logout } = useAuth()
   const { theme, toggle } = useTheme()
   return (
-    <div className="header">
-      <Link to="/" className="brand link" style={{ textDecoration:'none' }}>
-        <span className="brand-badge" />
+    <header className="header glass">
+      <Link to="/" className="brand" style={{ textDecoration: 'none' }}>
+        <span style={{ fontSize: '28px' }}>☀️</span>
         <span>Suncool</span>
       </Link>
-      <nav style={{ display:'flex', alignItems:'center', gap:10 }}>
-        <button className="button secondary" onClick={toggle} title="Toggle theme">{theme === 'dark' ? '☾' : '☼'}</button>
+      <nav style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+        <button className="btn btn-secondary" onClick={toggle} title="Toggle theme" style={{ padding: '8px 12px' }}>
+          {theme === 'dark' ? '🌙' : '☀️'}
+        </button>
         {token ? (
           <>
-            <span className="subtle" style={{ marginRight: 4 }}>{user?.name}</span>
-            <button className="button" onClick={logout}>Logout</button>
+            <span style={{ fontWeight: 600, color: 'var(--text)' }}>
+              {user?.name}
+            </span>
+            <button className="btn btn-secondary" onClick={logout} style={{ fontSize: '13px', padding: '8px 16px' }}>
+              Sign out
+            </button>
           </>
         ) : (
-          <>
-            <Link className="link" to="/login">Login</Link>
-            <Link className="link" to="/signup">Sign up</Link>
-          </>
+          <div style={{ display: 'flex', gap: 12 }}>
+            <Link className="nav-link" to="/login">Sign in</Link>
+            <Link className="btn btn-primary" to="/signup" style={{ textDecoration: 'none', padding: '8px 20px' }}>
+              Get Started
+            </Link>
+          </div>
         )}
       </nav>
-    </div>
+    </header>
   )
 }
